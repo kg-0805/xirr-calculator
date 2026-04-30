@@ -19,7 +19,7 @@ app:
       - username: investor
         password-hash: "$2a$10$jO5TJ4iBxnXoKFp9jf6JeuNz2pgf3LdTfepL6R2rtZDDA188kCOya"
       - username: advisor
-        password-hash: "$2a$10$jO5TJ4iBxnXoKFp9jf6JeuNz2pgf3LdTfepL6R2rtZDDA188kCOya"
+        password-hash: "$2a$10$U0tHU4.bji0qLvAVJJ8Sc.AdiPFI5KlMYgoEtd6Egdd5Vu71z.qjq"
   access-request:
     storage-path: data/access-requests.jsonl
     notify-email: ${ACCESS_REQUEST_NOTIFY_EMAIL:}
