@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<footer th:fragment="siteFooter" class="site-footer">
+    <div class="footer-shell">
+        <p>
+            &copy; <span th:text="${T(java.time.Year).now().value}">2026</span>
+            <strong>KARTIK GUPTA</strong>
+            <span class="footer-separator">|</span>
+            <a href="https://kartikgupta.in" target="_blank" rel="noopener noreferrer">kartikgupta.in</a>
+        </p>
+    </div>
+</footer>
+</body>
+</html>
