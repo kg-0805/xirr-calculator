@@ -3,15 +3,6 @@ spring:
     multipart:
       max-file-size: 5MB
       max-request-size: 5MB
-  mail:
-    host: ${MAIL_HOST:smtp.gmail.com}
-    port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME:}
-    password: ${MAIL_PASSWORD:}
-    properties:
-      mail.smtp.auth: true
-      mail.smtp.starttls.enable: ${MAIL_STARTTLS:false}
-      mail.smtp.ssl.enable: ${MAIL_SSL:true}
 
 app:
   auth:
@@ -34,6 +25,10 @@ app:
     xirr:
       max-requests: 20
       window-seconds: 60
+
+brevo:
+  api-key: ${BREVO_API_KEY:}
+  from-email: ${BREVO_FROM_EMAIL:contact@kartikgupta.in}
 
 server:
   port: ${PORT:8080}
