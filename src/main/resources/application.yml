@@ -34,3 +34,6 @@ app:
     xirr:
       max-requests: 20
       window-seconds: 60
+
+server:
+  port: ${PORT:8080}
