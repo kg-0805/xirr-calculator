@@ -13,6 +13,10 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -25,13 +29,16 @@ public class EmailNotificationService {
     private final AppAccessRequestProperties properties;
     private final String apiKey;
     private final String senderEmail;
+    private final String siteUrl;
 
     public EmailNotificationService(AppAccessRequestProperties properties,
                                     @Value("${BREVO_API_KEY:}") String apiKey,
-                                    @Value("${BREVO_FROM_EMAIL:contact@kartikgupta.in}") String senderEmail) {
+                                    @Value("${BREVO_FROM_EMAIL:contact@kartikgupta.in}") String senderEmail,
+                                    @Value("${SITE_URL:http://localhost:8080}") String siteUrl) {
         this.properties = properties;
         this.apiKey = apiKey;
         this.senderEmail = senderEmail;
+        this.siteUrl = siteUrl;
     }
 
     @Async
@@ -51,24 +58,27 @@ public class EmailNotificationService {
     }
 
     @Async
-    public void sendUserCreatedNotification(String fullName, String email, String password) {
+    public void sendUserCreatedNotification(String fullName, String email, String password, Instant expiresAt) {
         try {
-            // Welcome email to the user
-            String userHtml = wrap("Welcome to XIRR Calculator! 🎉",
+            String expiryFormatted = ZonedDateTime.ofInstant(expiresAt, ZoneId.of("Asia/Kolkata"))
+                    .format(DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a"));
+
+            String userHtml = wrap("Welcome to XIRR Calculator!",
                     "<p>Hi <strong>" + fullName + "</strong>,</p>"
                     + "<p>Your account has been created. Here are your login details:</p>"
-                    + card(field("Login Email", email) + field("Password", password))
-                    + "<p style='margin-top:1rem;'>You can log in at any time and change your password from the dashboard.</p>"
+                    + card(field("Login Email", email) + field("Password", password) + field("Access Expires", expiryFormatted))
+                    + button("Log In Now", siteUrl)
+                    + "<p style='margin-top:1rem;'>We recommend changing your password after your first login for security.</p>"
                     + "<p style='color:#6b7280;font-size:13px;margin-top:1.5rem;'>If you did not request this account, please ignore this email.</p>");
 
             sendEmail(email, "Welcome to XIRR Calculator", userHtml);
 
-            // Notification to admin
             String adminHtml = wrap("New User Created",
                     "<p>A new user account has been created:</p>"
                     + field("Full Name", fullName)
                     + field("Email", email)
-                    + field("Password", password));
+                    + field("Password", password)
+                    + field("Expires At", expiryFormatted));
 
             sendEmail(properties.notifyEmail(), "User Created: " + email, adminHtml);
         } catch (Exception e) {
@@ -79,16 +89,14 @@ public class EmailNotificationService {
     @Async
     public void sendUserActivatedNotification(String fullName, String email) {
         try {
-            // Notification to user
-            String userHtml = wrap("Account Activated ✅",
+            String userHtml = wrap("Account Activated",
                     "<p>Hi <strong>" + fullName + "</strong>,</p>"
                     + "<p>Great news! Your XIRR Calculator account has been activated by the administrator.</p>"
-                    + "<p>You can now log in and start using the calculator.</p>"
+                    + button("Log In Now", siteUrl)
                     + "<p style='color:#6b7280;font-size:13px;margin-top:1.5rem;'>If you have any questions, contact the administrator.</p>");
 
             sendEmail(email, "Your Account Has Been Activated", userHtml);
 
-            // Notification to admin
             String adminHtml = wrap("User Activated",
                     "<p>The following user has been activated:</p>"
                     + field("Full Name", fullName)
@@ -103,16 +111,15 @@ public class EmailNotificationService {
     @Async
     public void sendPasswordResetNotification(String fullName, String email, String newPassword) {
         try {
-            // Notification to user
-            String userHtml = wrap("Password Reset 🔑",
+            String userHtml = wrap("Password Reset",
                     "<p>Hi <strong>" + fullName + "</strong>,</p>"
                     + "<p>Your password has been reset by the administrator. Here are your new credentials:</p>"
                     + card(field("Email", email) + field("New Password", newPassword))
-                    + "<p style='margin-top:1rem;'>Please log in and change your password immediately for security.</p>");
+                    + button("Log In Now", siteUrl)
+                    + "<p style='margin-top:1rem;'>Please change your password after logging in for security.</p>");
 
             sendEmail(email, "Your Password Has Been Reset", userHtml);
 
-            // Notification to admin
             String adminHtml = wrap("Password Reset Completed",
                     "<p>Password has been reset for:</p>"
                     + field("Full Name", fullName)
@@ -128,8 +135,7 @@ public class EmailNotificationService {
     @Async
     public void sendResetCodeEmail(String email, String code) {
         try {
-            // Code to the admin user
-            String userHtml = wrap("Verification Code 🔐",
+            String userHtml = wrap("Verification Code",
                     "<p>You requested a password reset. Use the code below to verify your identity:</p>"
                     + "<div style='text-align:center;margin:1.5rem 0;'>"
                     + "<span style='display:inline-block;padding:16px 32px;background:#f8fafc;border:2px dashed #ea580c;border-radius:12px;font-size:28px;font-weight:700;letter-spacing:8px;color:#1f2937;'>" + code + "</span>"
@@ -139,7 +145,6 @@ public class EmailNotificationService {
 
             sendEmail(email, "Password Reset Code: " + code, userHtml);
 
-            // Also notify admin contact email
             String adminHtml = wrap("Password Reset Code Sent",
                     "<p>A password reset verification code was sent to:</p>"
                     + field("Email", email)
@@ -201,6 +206,12 @@ public class EmailNotificationService {
 
     private String card(String content) {
         return "<div style='margin:16px 0;padding:16px 20px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;'>" + content + "</div>";
+    }
+
+    private String button(String text, String url) {
+        return "<div style='text-align:center;margin:20px 0;'>"
+                + "<a href='" + url + "' style='display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#ea580c,#be123c);color:white;text-decoration:none;border-radius:999px;font-weight:700;font-size:14px;'>" + text + " &rarr;</a>"
+                + "</div>";
     }
 
     private void sendEmail(String to, String subject, String htmlContent) {

@@ -54,7 +54,7 @@ public class AdminController {
         AppUser user = new AppUser(email, fullName, passwordEncoder.encode(password), true, admin, expiresAt);
         userRepository.save(user);
 
-        emailNotificationService.sendUserCreatedNotification(fullName, email, password);
+        emailNotificationService.sendUserCreatedNotification(fullName, email, password, expiresAt);
         return ResponseEntity.ok(Map.of("message", "User created successfully."));
     }
 

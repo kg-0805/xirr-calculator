@@ -117,7 +117,10 @@
                 </div>
                 <div class="field-group">
                     <label for="password">Password</label>
-                    <input id="password" type="text" required>
+                    <div style="display:flex;gap:0.4rem;">
+                        <input id="password" type="text" required style="flex:1;">
+                        <button type="button" class="secondary-button small-btn" onclick="document.getElementById('password').value=generatePassword()" style="white-space:nowrap;">Generate</button>
+                    </div>
                 </div>
                 <div class="field-group">
                     <label><input id="adminCheck" type="checkbox"> Grant Admin Rights</label>
@@ -201,7 +204,10 @@
         <h3>Reset User Password</h3>
         <div class="field-group">
             <label for="modalResetPwd">New Password</label>
-            <input id="modalResetPwd" type="text">
+            <div style="display:flex;gap:0.4rem;">
+                <input id="modalResetPwd" type="text" style="flex:1;">
+                <button type="button" class="secondary-button small-btn" onclick="document.getElementById('modalResetPwd').value=generatePassword()" style="white-space:nowrap;">Generate</button>
+            </div>
         </div>
         <div class="modal-actions">
             <button class="btn-cancel" onclick="closeModal('reset-pwd-modal')">Cancel</button>
@@ -232,6 +238,13 @@
     const csrfToken = document.querySelector("meta[name='_csrf']")?.content;
     const csrfHeader = document.querySelector("meta[name='_csrf_header']")?.content;
     let activeUserId = null;
+
+    function generatePassword() {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%';
+        let pwd = '';
+        for (let i = 0; i < 12; i++) pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+        return pwd;
+    }
 
     function headers() {
         const h = {"Content-Type": "application/json"};
