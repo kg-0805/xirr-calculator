@@ -46,6 +46,7 @@
                     <label for="resetEmail">Your Email</label>
                     <input id="resetEmail" type="email" required style="margin-bottom:0.5rem;">
                     <button type="button" class="secondary-button" style="width:100%;" onclick="requestResetCode()">Send Verification Code</button>
+                    <p style="font-size:0.78rem;color:var(--text-soft);margin-top:0.3rem;">* Verification code is only for admin accounts.</p>
                     <button type="button" class="secondary-button" style="width:100%;margin-top:0.4rem;" onclick="requestPasswordReset()">Request Admin to Reset</button>
                 </div>
                 <div id="forgot-step2" class="hidden" style="margin-top:0.75rem;">
@@ -144,6 +145,15 @@
         });
         const data = await res.json();
         setForgotMsg(data.message, res.ok);
+        if (res.ok) {
+            setTimeout(() => {
+                document.getElementById("forgot-section").classList.add("hidden");
+                document.getElementById("forgot-step2").classList.add("hidden");
+                document.getElementById("resetEmail").value = "";
+                document.getElementById("resetCode").value = "";
+                document.getElementById("resetNewPwd").value = "";
+            }, 2000);
+        }
     }
 
     async function requestPasswordReset() {

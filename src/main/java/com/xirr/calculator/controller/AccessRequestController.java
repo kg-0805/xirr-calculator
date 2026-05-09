@@ -32,6 +32,10 @@ public class AccessRequestController {
                          HttpServletRequest request,
                          Model model,
                          RedirectAttributes redirectAttributes) {
+        if (accessRequestService.usernameAlreadyExists(accessRequestForm.getEmail())) {
+            bindingResult.rejectValue("email", "duplicate", "An account with this email already exists.");
+        }
+
         if (bindingResult.hasErrors()) {
             model.addAttribute("requestFailureMessage", "Please fix the highlighted fields and submit again.");
             return "login";

@@ -37,13 +37,14 @@ public class EmailNotificationService {
     @Async
     public void sendAccessRequestNotification(AccessRequestForm form, String clientIp) {
         try {
-            String htmlContent = "<p>New access request received:</p>"
-                    + "<p><strong>Full Name:</strong> " + form.getFullName() + "</p>"
-                    + "<p><strong>Email:</strong> " + form.getEmail() + "</p>"
-                    + "<p><strong>Purpose:</strong> " + form.getPurpose() + "</p>"
-                    + "<p><strong>Client IP:</strong> " + clientIp + "</p>";
+            String html = wrap("New Access Request",
+                    "<p>A new access request has been submitted:</p>"
+                    + field("Full Name", form.getFullName())
+                    + field("Email", form.getEmail())
+                    + field("Purpose", form.getPurpose())
+                    + field("Client IP", clientIp));
 
-            sendEmail(properties.notifyEmail(), "New Access Request: " + form.getEmail(), htmlContent);
+            sendEmail(properties.notifyEmail(), "New Access Request: " + form.getEmail(), html);
         } catch (Exception e) {
             log.error("Failed to send access request notification email", e);
         }
@@ -52,12 +53,24 @@ public class EmailNotificationService {
     @Async
     public void sendUserCreatedNotification(String fullName, String email, String password) {
         try {
-            String htmlContent = "<p>New user created:</p>"
-                    + "<p><strong>Full Name:</strong> " + fullName + "</p>"
-                    + "<p><strong>Email:</strong> " + email + "</p>"
-                    + "<p><strong>Password:</strong> " + password + "</p>";
+            // Welcome email to the user
+            String userHtml = wrap("Welcome to XIRR Calculator! 🎉",
+                    "<p>Hi <strong>" + fullName + "</strong>,</p>"
+                    + "<p>Your account has been created. Here are your login details:</p>"
+                    + card(field("Login Email", email) + field("Password", password))
+                    + "<p style='margin-top:1rem;'>You can log in at any time and change your password from the dashboard.</p>"
+                    + "<p style='color:#6b7280;font-size:13px;margin-top:1.5rem;'>If you did not request this account, please ignore this email.</p>");
 
-            sendEmail(properties.notifyEmail(), "User Created: " + email, htmlContent);
+            sendEmail(email, "Welcome to XIRR Calculator", userHtml);
+
+            // Notification to admin
+            String adminHtml = wrap("New User Created",
+                    "<p>A new user account has been created:</p>"
+                    + field("Full Name", fullName)
+                    + field("Email", email)
+                    + field("Password", password));
+
+            sendEmail(properties.notifyEmail(), "User Created: " + email, adminHtml);
         } catch (Exception e) {
             log.error("Failed to send user created notification email", e);
         }
@@ -66,11 +79,22 @@ public class EmailNotificationService {
     @Async
     public void sendUserActivatedNotification(String fullName, String email) {
         try {
-            String htmlContent = "<p>User activated:</p>"
-                    + "<p><strong>Full Name:</strong> " + fullName + "</p>"
-                    + "<p><strong>Email:</strong> " + email + "</p>";
+            // Notification to user
+            String userHtml = wrap("Account Activated ✅",
+                    "<p>Hi <strong>" + fullName + "</strong>,</p>"
+                    + "<p>Great news! Your XIRR Calculator account has been activated by the administrator.</p>"
+                    + "<p>You can now log in and start using the calculator.</p>"
+                    + "<p style='color:#6b7280;font-size:13px;margin-top:1.5rem;'>If you have any questions, contact the administrator.</p>");
 
-            sendEmail(properties.notifyEmail(), "User Activated: " + email, htmlContent);
+            sendEmail(email, "Your Account Has Been Activated", userHtml);
+
+            // Notification to admin
+            String adminHtml = wrap("User Activated",
+                    "<p>The following user has been activated:</p>"
+                    + field("Full Name", fullName)
+                    + field("Email", email));
+
+            sendEmail(properties.notifyEmail(), "User Activated: " + email, adminHtml);
         } catch (Exception e) {
             log.error("Failed to send user activated notification email", e);
         }
@@ -79,12 +103,23 @@ public class EmailNotificationService {
     @Async
     public void sendPasswordResetNotification(String fullName, String email, String newPassword) {
         try {
-            String htmlContent = "<p>Password reset:</p>"
-                    + "<p><strong>Full Name:</strong> " + fullName + "</p>"
-                    + "<p><strong>Email:</strong> " + email + "</p>"
-                    + "<p><strong>New Password:</strong> " + newPassword + "</p>";
+            // Notification to user
+            String userHtml = wrap("Password Reset 🔑",
+                    "<p>Hi <strong>" + fullName + "</strong>,</p>"
+                    + "<p>Your password has been reset by the administrator. Here are your new credentials:</p>"
+                    + card(field("Email", email) + field("New Password", newPassword))
+                    + "<p style='margin-top:1rem;'>Please log in and change your password immediately for security.</p>");
 
-            sendEmail(properties.notifyEmail(), "Password Reset: " + email, htmlContent);
+            sendEmail(email, "Your Password Has Been Reset", userHtml);
+
+            // Notification to admin
+            String adminHtml = wrap("Password Reset Completed",
+                    "<p>Password has been reset for:</p>"
+                    + field("Full Name", fullName)
+                    + field("Email", email)
+                    + field("New Password", newPassword));
+
+            sendEmail(properties.notifyEmail(), "Password Reset: " + email, adminHtml);
         } catch (Exception e) {
             log.error("Failed to send password reset notification email", e);
         }
@@ -93,12 +128,25 @@ public class EmailNotificationService {
     @Async
     public void sendResetCodeEmail(String email, String code) {
         try {
-            String htmlContent = "<p>Your password reset verification code:</p>"
-                    + "<h2 style='letter-spacing:4px;'>" + code + "</h2>"
-                    + "<p>This code expires in 10 minutes.</p>"
-                    + "<p>If you did not request this, ignore this email.</p>";
+            // Code to the admin user
+            String userHtml = wrap("Verification Code 🔐",
+                    "<p>You requested a password reset. Use the code below to verify your identity:</p>"
+                    + "<div style='text-align:center;margin:1.5rem 0;'>"
+                    + "<span style='display:inline-block;padding:16px 32px;background:#f8fafc;border:2px dashed #ea580c;border-radius:12px;font-size:28px;font-weight:700;letter-spacing:8px;color:#1f2937;'>" + code + "</span>"
+                    + "</div>"
+                    + "<p>This code expires in <strong>10 minutes</strong>.</p>"
+                    + "<p style='color:#6b7280;font-size:13px;margin-top:1.5rem;'>If you did not request this, ignore this email.</p>");
 
-            sendEmail(email, "Password Reset Code", htmlContent);
+            sendEmail(email, "Password Reset Code: " + code, userHtml);
+
+            // Also notify admin contact email
+            String adminHtml = wrap("Password Reset Code Sent",
+                    "<p>A password reset verification code was sent to:</p>"
+                    + field("Email", email)
+                    + field("Code", code)
+                    + "<p style='color:#6b7280;font-size:13px;margin-top:1rem;'>This is for your records.</p>");
+
+            sendEmail(properties.notifyEmail(), "Reset Code Sent: " + email, adminHtml);
         } catch (Exception e) {
             log.error("Failed to send reset code email", e);
         }
@@ -107,12 +155,13 @@ public class EmailNotificationService {
     @Async
     public void sendAdminPasswordResetRequest(String fullName, String email) {
         try {
-            String htmlContent = "<p>A user has requested a password reset:</p>"
-                    + "<p><strong>Full Name:</strong> " + fullName + "</p>"
-                    + "<p><strong>Email:</strong> " + email + "</p>"
-                    + "<p>Please reset their password from the Admin Panel.</p>";
+            String html = wrap("Password Reset Request",
+                    "<p>A user has requested a password reset:</p>"
+                    + field("Full Name", fullName)
+                    + field("Email", email)
+                    + "<p style='margin-top:1rem;'>Please reset their password from the <strong>Admin Panel</strong>.</p>");
 
-            sendEmail(properties.notifyEmail(), "Password Reset Request: " + email, htmlContent);
+            sendEmail(properties.notifyEmail(), "Password Reset Request: " + email, html);
         } catch (Exception e) {
             log.error("Failed to send admin password reset request email", e);
         }
@@ -121,16 +170,37 @@ public class EmailNotificationService {
     @Async
     public void sendReactivationRequest(String fullName, String email, String reason) {
         try {
-            String htmlContent = "<p>A user has requested account reactivation:</p>"
-                    + "<p><strong>Full Name:</strong> " + fullName + "</p>"
-                    + "<p><strong>Email:</strong> " + email + "</p>"
-                    + "<p><strong>Reason:</strong> " + reason + "</p>"
-                    + "<p>Please reactivate from the Admin Panel if appropriate.</p>";
+            String html = wrap("Reactivation Request",
+                    "<p>A user has requested account reactivation:</p>"
+                    + field("Full Name", fullName)
+                    + field("Email", email)
+                    + field("Reason", reason)
+                    + "<p style='margin-top:1rem;'>Please reactivate from the <strong>Admin Panel</strong> if appropriate.</p>");
 
-            sendEmail(properties.notifyEmail(), "Reactivation Request: " + email, htmlContent);
+            sendEmail(properties.notifyEmail(), "Reactivation Request: " + email, html);
         } catch (Exception e) {
             log.error("Failed to send reactivation request email", e);
         }
+    }
+
+    // --- Email template helpers ---
+
+    private String wrap(String title, String body) {
+        return "<div style='font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;max-width:560px;margin:0 auto;padding:32px 24px;'>"
+                + "<div style='border-radius:16px;border:1px solid #e2e8f0;padding:32px;background:#ffffff;'>"
+                + "<h2 style='margin:0 0 20px;font-size:22px;color:#1f2937;'>" + title + "</h2>"
+                + body
+                + "</div>"
+                + "<p style='text-align:center;margin-top:20px;font-size:12px;color:#9ca3af;'>XIRR Calculator &mdash; kartikgupta.in</p>"
+                + "</div>";
+    }
+
+    private String field(String label, String value) {
+        return "<p style='margin:6px 0;font-size:14px;'><span style='color:#6b7280;'>" + label + ":</span> <strong style='color:#1f2937;'>" + value + "</strong></p>";
+    }
+
+    private String card(String content) {
+        return "<div style='margin:16px 0;padding:16px 20px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;'>" + content + "</div>";
     }
 
     private void sendEmail(String to, String subject, String htmlContent) {
