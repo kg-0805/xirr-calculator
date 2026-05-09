@@ -36,7 +36,7 @@ function renderTransactions(transactions) {
 
     transactions.forEach((transaction) => {
         const row = document.createElement("tr");
-        const typeClass = transaction.type.toLowerCase();
+        const typeClass = transaction.type.toLowerCase().replace("_", "-");
         row.innerHTML = `
             <td>${transaction.date}</td>
             <td><span class="chip ${typeClass}">${transaction.type}</span></td>

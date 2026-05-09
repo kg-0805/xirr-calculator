@@ -32,10 +32,6 @@ public class AccessRequestController {
                          HttpServletRequest request,
                          Model model,
                          RedirectAttributes redirectAttributes) {
-        if (accessRequestService.usernameAlreadyExists(accessRequestForm.getDesiredUsername())) {
-            bindingResult.rejectValue("desiredUsername", "duplicate", "That username already exists.");
-        }
-
         if (bindingResult.hasErrors()) {
             model.addAttribute("requestFailureMessage", "Please fix the highlighted fields and submit again.");
             return "login";
@@ -49,7 +45,7 @@ public class AccessRequestController {
             return "login";
         }
 
-        redirectAttributes.addFlashAttribute("requestSubmittedUsername", accessRequestForm.getDesiredUsername());
+        redirectAttributes.addFlashAttribute("requestSubmittedEmail", accessRequestForm.getEmail());
         return "redirect:/login?requestSuccess";
     }
 

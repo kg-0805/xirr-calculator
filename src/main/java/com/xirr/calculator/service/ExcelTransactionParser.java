@@ -138,7 +138,7 @@ public class ExcelTransactionParser {
         try {
             return TransactionType.from(value);
         } catch (Exception exception) {
-            throw new InvalidWorkbookException("Row " + (rowIndex + 1) + " must use BUY or SELL in the Type column.");
+            throw new InvalidWorkbookException("Row " + (rowIndex + 1) + " must use BUY, SELL, or PRESENT in the Type column.");
         }
     }
 
@@ -179,22 +179,22 @@ public class ExcelTransactionParser {
 
     private void validateTransactions(List<InvestmentTransaction> transactions) {
         if (transactions.size() < 2) {
-            throw new InvalidWorkbookException("Add at least one BUY and one SELL transaction.");
+            throw new InvalidWorkbookException("Add at least one BUY and one PRESENT transaction.");
         }
 
         boolean hasBuy = transactions.stream().anyMatch(transaction -> transaction.type() == TransactionType.BUY);
-        boolean hasSell = transactions.stream().anyMatch(transaction -> transaction.type() == TransactionType.SELL);
+        boolean hasPresent = transactions.stream().anyMatch(transaction -> transaction.type() == TransactionType.PRESENT);
 
-        if (!hasBuy || !hasSell) {
-            throw new InvalidWorkbookException("The workbook must contain at least one BUY and one SELL transaction.");
+        if (!hasBuy || !hasPresent) {
+            throw new InvalidWorkbookException("The workbook must contain at least one BUY and one PRESENT transaction.");
         }
 
         if (transactions.getFirst().type() != TransactionType.BUY) {
             throw new InvalidWorkbookException("The first transaction must be a BUY entry.");
         }
 
-        if (transactions.getLast().type() != TransactionType.SELL) {
-            throw new InvalidWorkbookException("The last transaction must be a SELL entry.");
+        if (transactions.getLast().type() != TransactionType.PRESENT) {
+            throw new InvalidWorkbookException("The last transaction must be a PRESENT entry.");
         }
 
         LocalDate previousDate = null;

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
+    <title>Privacy Policy — XIRR Calculator</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<main class="dashboard-shell">
+    <section class="panel" style="max-width:800px;margin:2rem auto;padding:2.5rem;">
+        <div class="eyebrow">Legal</div>
+        <h1>Privacy Policy</h1>
+
+        <h3>Information We Collect</h3>
+        <p>This application collects only the minimum information necessary to provide its services:</p>
+        <ul style="margin:0.75rem 0;padding-left:1.5rem;line-height:1.8;">
+            <li><strong>Account information:</strong> Email address, full name, and a securely hashed password for authentication purposes.</li>
+            <li><strong>Access requests:</strong> Name, email, desired username, and stated purpose — stored locally for admin review.</li>
+            <li><strong>Uploaded files:</strong> Excel workbooks are processed in memory only and are <strong>never stored, logged, or transmitted</strong> to any third party.</li>
+        </ul>
+
+        <h3 style="margin-top:1.5rem;">How We Use Your Information</h3>
+        <ul style="margin:0.75rem 0;padding-left:1.5rem;line-height:1.8;">
+            <li>To authenticate you and manage your login session.</li>
+            <li>To send transactional emails (account creation, password reset codes, reactivation notifications).</li>
+            <li>To process your uploaded workbook and return the XIRR calculation.</li>
+        </ul>
+
+        <h3 style="margin-top:1.5rem;">Data Storage &amp; Security</h3>
+        <ul style="margin:0.75rem 0;padding-left:1.5rem;line-height:1.8;">
+            <li>Passwords are stored as <strong>BCrypt hashes</strong> — the plain-text password is never stored.</li>
+            <li>Uploaded Excel files exist only in server memory during processing and are immediately discarded.</li>
+            <li>No financial data, transaction details, or calculation results are persisted.</li>
+            <li>The application uses rate limiting to protect against abuse.</li>
+        </ul>
+
+        <h3 style="margin-top:1.5rem;">Third-Party Services</h3>
+        <ul style="margin:0.75rem 0;padding-left:1.5rem;line-height:1.8;">
+            <li><strong>Email delivery:</strong> Transactional emails are sent via Brevo (formerly Sendinblue). Only the recipient email and message content are shared with this service.</li>
+            <li><strong>Database:</strong> Account data is stored in a PostgreSQL database hosted on Neon.</li>
+        </ul>
+
+        <h3 style="margin-top:1.5rem;">Data Retention</h3>
+        <p>Account data is retained as long as your account is active. You may request deletion of your account by contacting the administrator.</p>
+
+        <h3 style="margin-top:1.5rem;">Your Rights</h3>
+        <p>You may request access to, correction of, or deletion of your personal data at any time by contacting the site administrator.</p>
+
+        <h3 style="margin-top:1.5rem;">Contact</h3>
+        <p>For privacy-related inquiries, contact: <a href="mailto:contact@kartikgupta.in" style="color:var(--accent-deep);font-weight:700;">contact@kartikgupta.in</a></p>
+
+        <p style="margin-top:2rem;"><a href="/" style="color:var(--accent-deep);font-weight:700;">← Back to Calculator</a> &nbsp;|&nbsp; <a href="/disclaimer" style="color:var(--accent-deep);font-weight:700;">Disclaimer</a></p>
+    </section>
+</main>
+<div th:replace="~{fragments/footer :: siteFooter}"></div>
+</body>
+</html>

@@ -1,15 +1,14 @@
 package com.xirr.calculator.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.xirr.calculator.service.DbUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -33,8 +32,11 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http, RateLimitingFilter rateLimitingFilter) throws Exception {
         return http
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/css/**", "/js/**").permitAll()
-                        .requestMatchers("/login", "/access-request").permitAll()
+                        .requestMatchers("/css/**", "/js/**", "/favicon.svg").permitAll()
+                        .requestMatchers("/login", "/access-request", "/disclaimer", "/privacy").permitAll()
+                        .requestMatchers("/api/password-reset/**").permitAll()
+                        .requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/account/**").authenticated()
                         .anyRequest().authenticated())
                 .formLogin(form -> form
                         .loginPage("/login")
@@ -47,15 +49,10 @@ public class SecurityConfig {
     }
 
     @Bean
-    UserDetailsService userDetailsService(AppAuthProperties authProperties) {
-        var users = authProperties.users().stream()
-                .map(user -> User.withUsername(user.username())
-                        .password(user.passwordHash())
-                        .roles("USER")
-                        .build())
-                .map(UserDetails.class::cast)
-                .toList();
-        return new InMemoryUserDetailsManager(users);
+    AuthenticationManager authenticationManager(HttpSecurity http, DbUserDetailsService userDetailsService, PasswordEncoder passwordEncoder) throws Exception {
+        AuthenticationManagerBuilder builder = http.getSharedObject(AuthenticationManagerBuilder.class);
+        builder.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder);
+        return builder.build();
     }
 
     @Bean

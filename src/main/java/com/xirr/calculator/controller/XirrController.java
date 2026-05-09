@@ -41,7 +41,8 @@ public class XirrController {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal totalRedeemed = transactions.stream()
-                .filter(t -> t.type() == com.xirr.calculator.model.TransactionType.SELL)
+                .filter(t -> t.type() == com.xirr.calculator.model.TransactionType.SELL
+                        || t.type() == com.xirr.calculator.model.TransactionType.PRESENT)
                 .map(InvestmentTransaction::amount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 

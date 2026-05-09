@@ -456,6 +456,16 @@ th {
     color: #166534;
 }
 
+.chip.present-value {
+    background: rgba(59, 130, 246, 0.14);
+    color: #1e40af;
+}
+
+.chip.present {
+    background: rgba(59, 130, 246, 0.14);
+    color: #1e40af;
+}
+
 .site-footer {
     position: relative;
     z-index: 1;
@@ -495,6 +505,37 @@ th {
 
 .footer-separator {
     opacity: 0.5;
+}
+
+.small-btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+}
+
+.action-cell {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.admin-panel-btn {
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    padding: 0.7rem 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: white;
+    background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
+    box-shadow: 0 8px 20px rgba(30, 64, 175, 0.25);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.admin-panel-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 24px rgba(30, 64, 175, 0.35);
 }
 
 @media (max-width: 900px) {

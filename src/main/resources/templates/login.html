@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
     <title>XIRR Access</title>
     <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
@@ -24,14 +27,45 @@
             <form class="auth-form" method="post" th:action="@{/login}">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
-                <label for="username">Username</label>
-                <input id="username" name="username" type="text" autocomplete="username" required>
+                <label for="username">Email</label>
+                <input id="username" name="username" type="email" autocomplete="email" required>
 
                 <label for="password">Password</label>
                 <input id="password" name="password" type="password" autocomplete="current-password" required>
 
                 <button type="submit">Enter Dashboard</button>
             </form>
+
+            <div style="margin-top:1.25rem;">
+                <button type="button" class="secondary-button" style="width:100%;" onclick="document.getElementById('forgot-section').classList.toggle('hidden')">Forgot Password?</button>
+                <button type="button" class="secondary-button" style="width:100%;margin-top:0.4rem;" onclick="document.getElementById('reactivate-section').classList.toggle('hidden')">Request Reactivation</button>
+            </div>
+
+            <div id="forgot-section" class="hidden" style="margin-top:1rem;">
+                <div id="forgot-step1">
+                    <label for="resetEmail">Your Email</label>
+                    <input id="resetEmail" type="email" required style="margin-bottom:0.5rem;">
+                    <button type="button" class="secondary-button" style="width:100%;" onclick="requestResetCode()">Send Verification Code</button>
+                    <button type="button" class="secondary-button" style="width:100%;margin-top:0.4rem;" onclick="requestPasswordReset()">Request Admin to Reset</button>
+                </div>
+                <div id="forgot-step2" class="hidden" style="margin-top:0.75rem;">
+                    <label for="resetCode">Verification Code</label>
+                    <input id="resetCode" type="text" maxlength="6" required style="margin-bottom:0.5rem;">
+                    <label for="resetNewPwd">New Password</label>
+                    <input id="resetNewPwd" type="password" required style="margin-bottom:0.5rem;">
+                    <button type="button" class="secondary-button" style="width:100%;" onclick="verifyAndReset()">Reset Password</button>
+                </div>
+                <div id="forgot-msg" style="margin-top:0.5rem;font-size:0.9rem;font-weight:600;"></div>
+            </div>
+
+            <div id="reactivate-section" class="hidden" style="margin-top:1rem;">
+                <label for="reactivateEmail">Your Email</label>
+                <input id="reactivateEmail" type="email" required style="margin-bottom:0.5rem;">
+                <label for="reactivateReason">Reason for Reactivation</label>
+                <textarea id="reactivateReason" rows="3" style="margin-bottom:0.5rem;" placeholder="Explain why you need your account reactivated..."></textarea>
+                <button type="button" class="secondary-button" style="width:100%;" onclick="requestReactivation()">Submit Reactivation Request</button>
+                <div id="reactivate-msg" style="margin-top:0.5rem;font-size:0.9rem;font-weight:600;"></div>
+            </div>
         </section>
 
         <section class="panel request-panel">
@@ -62,13 +96,6 @@
                 </div>
 
                 <div class="field-group">
-                    <label for="desiredUsername">Desired Username</label>
-                    <input id="desiredUsername" th:field="*{desiredUsername}" type="text" required minlength="4" maxlength="32" pattern="[A-Za-z0-9._-]+">
-                    <p class="field-hint">Use 4 to 32 characters with letters, numbers, dots, underscores, or hyphens.</p>
-                    <p class="field-error" th:if="${#fields.hasErrors('desiredUsername')}" th:errors="*{desiredUsername}">Username error</p>
-                </div>
-
-                <div class="field-group">
                     <label for="purpose">Why Do You Need Access?</label>
                     <textarea id="purpose" th:field="*{purpose}" rows="5" required minlength="20" maxlength="500"></textarea>
                     <p class="field-error" th:if="${#fields.hasErrors('purpose')}" th:errors="*{purpose}">Purpose error</p>
@@ -80,5 +107,67 @@
     </section>
 </main>
 <div th:replace="~{fragments/footer :: siteFooter}"></div>
+<script>
+    const csrfToken = document.querySelector("meta[name='_csrf']")?.content;
+    const csrfHeader = document.querySelector("meta[name='_csrf_header']")?.content;
+
+    function fHeaders() {
+        const h = {"Content-Type": "application/json"};
+        if (csrfHeader && csrfToken) h[csrfHeader] = csrfToken;
+        return h;
+    }
+
+    function setForgotMsg(text, ok) {
+        const el = document.getElementById("forgot-msg");
+        el.textContent = text;
+        el.style.color = ok ? "#166534" : "#b91c1c";
+    }
+
+    async function requestResetCode() {
+        const email = document.getElementById("resetEmail").value;
+        if (!email) { setForgotMsg("Enter your email.", false); return; }
+        const res = await fetch("/api/password-reset/request-code", {
+            method: "POST", headers: fHeaders(), body: JSON.stringify({email})
+        });
+        const data = await res.json();
+        setForgotMsg(data.message, res.ok);
+        if (res.ok) document.getElementById("forgot-step2").classList.remove("hidden");
+    }
+
+    async function verifyAndReset() {
+        const email = document.getElementById("resetEmail").value;
+        const code = document.getElementById("resetCode").value;
+        const newPassword = document.getElementById("resetNewPwd").value;
+        if (!code || !newPassword) { setForgotMsg("All fields required.", false); return; }
+        const res = await fetch("/api/password-reset/verify-and-reset", {
+            method: "POST", headers: fHeaders(), body: JSON.stringify({email, code, newPassword})
+        });
+        const data = await res.json();
+        setForgotMsg(data.message, res.ok);
+    }
+
+    async function requestPasswordReset() {
+        const email = document.getElementById("resetEmail").value;
+        if (!email) { setForgotMsg("Enter your email.", false); return; }
+        const res = await fetch("/api/password-reset/request-admin-reset", {
+            method: "POST", headers: fHeaders(), body: JSON.stringify({email})
+        });
+        const data = await res.json();
+        setForgotMsg(data.message, res.ok);
+    }
+
+    async function requestReactivation() {
+        const email = document.getElementById("reactivateEmail").value;
+        const reason = document.getElementById("reactivateReason").value;
+        const msgEl = document.getElementById("reactivate-msg");
+        if (!email || !reason) { msgEl.textContent = "Email and reason are required."; msgEl.style.color = "#b91c1c"; return; }
+        const res = await fetch("/api/password-reset/request-reactivation", {
+            method: "POST", headers: fHeaders(), body: JSON.stringify({email, reason})
+        });
+        const data = await res.json();
+        msgEl.textContent = data.message;
+        msgEl.style.color = res.ok ? "#166534" : "#b91c1c";
+    }
+</script>
 </body>
 </html>

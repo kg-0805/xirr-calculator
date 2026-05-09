@@ -5,6 +5,7 @@ import com.xirr.calculator.config.AppAccessRequestProperties;
 import com.xirr.calculator.config.AppAuthProperties;
 import com.xirr.calculator.exception.AccessRequestStorageException;
 import com.xirr.calculator.model.AccessRequestForm;
+import com.xirr.calculator.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -21,19 +22,23 @@ public class AccessRequestService {
 
     private final AppAccessRequestProperties accessRequestProperties;
     private final AppAuthProperties authProperties;
+    private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
     private final ReentrantLock writeLock = new ReentrantLock();
 
     public AccessRequestService(AppAccessRequestProperties accessRequestProperties,
                                 AppAuthProperties authProperties,
+                                UserRepository userRepository,
                                 ObjectMapper objectMapper) {
         this.accessRequestProperties = accessRequestProperties;
         this.authProperties = authProperties;
+        this.userRepository = userRepository;
         this.objectMapper = objectMapper;
     }
 
     public boolean usernameAlreadyExists(String username) {
-        return authProperties.containsUsername(username);
+        return authProperties.containsUsername(username)
+                || userRepository.existsByEmail(username.toLowerCase().trim());
     }
 
     public void submitRequest(AccessRequestForm form, String clientIp) {
@@ -43,7 +48,6 @@ public class AccessRequestService {
                 safeTrim(clientIp),
                 safeTrim(form.getFullName()),
                 normalizeEmail(form.getEmail()),
-                safeTrim(form.getDesiredUsername()),
                 safeTrim(form.getPurpose())
         );
 
@@ -84,7 +88,6 @@ public class AccessRequestService {
             String clientIp,
             String fullName,
             String email,
-            String desiredUsername,
             String purpose
     ) {
     }

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
+    <title>Disclaimer — XIRR Calculator</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<main class="dashboard-shell">
+    <section class="panel" style="max-width:800px;margin:2rem auto;padding:2.5rem;">
+        <div class="eyebrow">Legal</div>
+        <h1>Disclaimer</h1>
+
+        <h3>No Financial Advice</h3>
+        <p>This tool is a mathematical utility that computes the Extended Internal Rate of Return (XIRR) based on the cash flow data you provide. It does not constitute financial advice, investment recommendation, or professional guidance of any kind.</p>
+
+        <h3 style="margin-top:1.5rem;">No Guarantee of Accuracy</h3>
+        <p>While every effort has been made to ensure the correctness of the calculation, the owner and developer of this tool makes <strong>no warranty or guarantee</strong> regarding the accuracy, completeness, or reliability of the results. The XIRR output is purely a mathematical computation and may differ from values reported by mutual fund houses, brokers, or other financial platforms due to differences in methodology, rounding, or data interpretation.</p>
+
+        <h3 style="margin-top:1.5rem;">Use at Your Own Risk</h3>
+        <p>You acknowledge and agree that:</p>
+        <ul style="margin:0.75rem 0;padding-left:1.5rem;line-height:1.8;">
+            <li>The results are indicative and should not be relied upon for making investment decisions.</li>
+            <li>The owner shall not be held liable for any loss, damage, or consequence arising from the use of this tool.</li>
+            <li>You are solely responsible for verifying the results independently before acting on them.</li>
+        </ul>
+
+        <h3 style="margin-top:1.5rem;">No Data Persistence</h3>
+        <p>Uploaded workbooks are processed entirely in memory and are not stored, saved, or transmitted to any third party. Once the calculation is complete, the file data is discarded.</p>
+
+        <p style="margin-top:2rem;"><a href="/" style="color:var(--accent-deep);font-weight:700;">← Back to Calculator</a> &nbsp;|&nbsp; <a href="/privacy" style="color:var(--accent-deep);font-weight:700;">Privacy Policy</a></p>
+    </section>
+</main>
+<div th:replace="~{fragments/footer :: siteFooter}"></div>
+</body>
+</html>
