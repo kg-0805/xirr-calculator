@@ -135,6 +135,21 @@ public class AdminController {
         return ResponseEntity.ok(Map.of("message", "Password reset for " + user.getEmail()));
     }
 
+    @PostMapping("/api/admin/users/{id}/toggle-role")
+    @ResponseBody
+    public ResponseEntity<?> toggleRole(@PathVariable Long id, Principal principal) {
+        AppUser user = userRepository.findById(id).orElse(null);
+        if (user == null) return ResponseEntity.notFound().build();
+        if (user.getEmail().equals(principal.getName())) {
+            return ResponseEntity.badRequest().body(Map.of("message", "You cannot change your own role."));
+        }
+
+        user.setAdmin(!user.isAdmin());
+        userRepository.save(user);
+        String newRole = user.isAdmin() ? "Admin" : "User";
+        return ResponseEntity.ok(Map.of("message", user.getEmail() + " is now " + newRole + "."));
+    }
+
     @DeleteMapping("/api/admin/users/{id}")
     @ResponseBody
     public ResponseEntity<?> deleteUser(@PathVariable Long id, Principal principal) {
