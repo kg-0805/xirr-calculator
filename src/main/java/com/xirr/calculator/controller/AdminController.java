@@ -82,6 +82,8 @@ public class AdminController {
 
         user.setActive(false);
         userRepository.save(user);
+
+        emailNotificationService.sendUserDeactivatedNotification(user.getFullName(), user.getEmail());
         return ResponseEntity.ok(Map.of("message", "User deactivated."));
     }
 
@@ -106,6 +108,8 @@ public class AdminController {
         }
 
         userRepository.save(user);
+
+        emailNotificationService.sendExpiryUpdatedNotification(user.getFullName(), user.getEmail(), user.getExpiresAt());
         return ResponseEntity.ok(Map.of("message", "Expiry updated successfully."));
     }
 
@@ -140,8 +144,12 @@ public class AdminController {
             return ResponseEntity.badRequest().body(Map.of("message", "You cannot delete yourself."));
         }
 
+        String deletedName = user.getFullName();
+        String deletedEmail = user.getEmail();
         userRepository.delete(user);
-        return ResponseEntity.ok(Map.of("message", "User " + user.getEmail() + " deleted."));
+
+        emailNotificationService.sendUserDeletedNotification(deletedName, deletedEmail);
+        return ResponseEntity.ok(Map.of("message", "User " + deletedEmail + " deleted."));
     }
 
     @PostMapping("/api/admin/change-password")

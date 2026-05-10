@@ -188,6 +188,77 @@ public class EmailNotificationService {
         }
     }
 
+    @Async
+    public void sendUserDeactivatedNotification(String fullName, String email) {
+        try {
+            String userHtml = wrap("Account Deactivated",
+                    "<p>Hi <strong>" + fullName + "</strong>,</p>"
+                    + "<p>Your XIRR Calculator account has been deactivated by the administrator.</p>"
+                    + "<p>You will no longer be able to log in until your account is reactivated.</p>"
+                    + "<p style='color:#6b7280;font-size:13px;margin-top:1.5rem;'>If you believe this is a mistake, please contact the administrator.</p>");
+
+            sendEmail(email, "Your Account Has Been Deactivated", userHtml);
+
+            String adminHtml = wrap("User Deactivated",
+                    "<p>The following user has been deactivated:</p>"
+                    + field("Full Name", fullName)
+                    + field("Email", email));
+
+            sendEmail(properties.notifyEmail(), "User Deactivated: " + email, adminHtml);
+        } catch (Exception e) {
+            log.error("Failed to send user deactivated notification email", e);
+        }
+    }
+
+    @Async
+    public void sendExpiryUpdatedNotification(String fullName, String email, Instant newExpiry) {
+        try {
+            String expiryFormatted = ZonedDateTime.ofInstant(newExpiry, ZoneId.of("Asia/Kolkata"))
+                    .format(DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a"));
+
+            String userHtml = wrap("Access Extended",
+                    "<p>Hi <strong>" + fullName + "</strong>,</p>"
+                    + "<p>As per your request, your login access has been extended.</p>"
+                    + card(field("New Expiry", expiryFormatted))
+                    + button("Log In Now", siteUrl)
+                    + "<p style='color:#6b7280;font-size:13px;margin-top:1.5rem;'>After this time, you will need to request reactivation.</p>");
+
+            sendEmail(email, "Your Access Has Been Extended", userHtml);
+
+            String adminHtml = wrap("Expiry Updated",
+                    "<p>Login expiry has been updated for:</p>"
+                    + field("Full Name", fullName)
+                    + field("Email", email)
+                    + field("New Expiry", expiryFormatted));
+
+            sendEmail(properties.notifyEmail(), "Expiry Updated: " + email, adminHtml);
+        } catch (Exception e) {
+            log.error("Failed to send expiry updated notification email", e);
+        }
+    }
+
+    @Async
+    public void sendUserDeletedNotification(String fullName, String email) {
+        try {
+            String userHtml = wrap("Account Removed",
+                    "<p>Hi <strong>" + fullName + "</strong>,</p>"
+                    + "<p>As per your request, your XIRR Calculator account has been permanently removed.</p>"
+                    + "<p>All your account data has been deleted. If you need access again in the future, you can submit a new access request from the login page.</p>"
+                    + "<p style='color:#6b7280;font-size:13px;margin-top:1.5rem;'>Thank you for using XIRR Calculator.</p>");
+
+            sendEmail(email, "Your Account Has Been Removed", userHtml);
+
+            String adminHtml = wrap("User Deleted",
+                    "<p>The following user has been permanently deleted:</p>"
+                    + field("Full Name", fullName)
+                    + field("Email", email));
+
+            sendEmail(properties.notifyEmail(), "User Deleted: " + email, adminHtml);
+        } catch (Exception e) {
+            log.error("Failed to send user deleted notification email", e);
+        }
+    }
+
     // --- Email template helpers ---
 
     private String wrap(String title, String body) {
