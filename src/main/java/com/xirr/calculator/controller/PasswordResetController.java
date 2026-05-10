@@ -37,8 +37,8 @@ public class PasswordResetController {
             return ResponseEntity.badRequest().body(Map.of("message", "No account found with that email."));
         }
 
-        if (!user.isAdmin()) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Please contact the admin to reset your password."));
+        if (!user.isActive()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Your account is inactive. Please request reactivation."));
         }
 
         String code = String.format("%06d", secureRandom.nextInt(1_000_000));

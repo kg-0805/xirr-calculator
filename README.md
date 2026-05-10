@@ -1,144 +1,225 @@
-# XIRR Calculator
+# 📊 XIRR Calculator
 
-Spring Boot web app that calculates XIRR (Extended Internal Rate of Return) from an uploaded Excel workbook containing mutual fund transactions.
+A sleek, secure Spring Boot web application that calculates **XIRR (Extended Internal Rate of Return)** from uploaded Excel workbooks containing mutual fund transactions.
 
-## Features
+> _Calculate your true annualized returns — accounting for every irregular cash flow._
 
-- **XIRR Calculation** — annualized return based on irregular cash flows
-- **Result Summary** — shows total invested, total redeemed, and profit/loss
-- **Admin Panel** — full user management (create, activate, deactivate, delete, set expiry, reset password)
-- **Role-based Access** — admin users manage the panel; regular users access the calculator
-- **Login Expiry** — each user has a configurable expiry time (default: 1 hour for new users)
-- **Change Password** — all logged-in users can change their own password
-- **Forgot Password** — admin gets a 2FA code via email; regular users request admin to reset
-- **Request Reactivation** — expired/deactivated users can request reactivation from the login page
-- **Access Request Form** — unauthenticated users can request a new account
-- **Email Notifications** — via Brevo API on user creation, activation, password reset, and access requests
-- **Rate Limiting** — in-memory per-IP rate limiting on login, upload, and access request endpoints
-- **PostgreSQL Backend** — user data stored in PostgreSQL (Neon compatible)
-- **BCrypt Passwords** — all passwords stored as hashes, never plain text
-- **Sample Excel Download** — users can download a sample workbook from the dashboard
-- **Disclaimer & Privacy** — public pages accessible without login
-- **No Transaction Persistence** — uploaded files are processed in memory and immediately discarded
+---
 
-## Workbook Format
+## ✨ Features
+
+| Category | Details |
+|----------|---------|
+| 📈 **XIRR Calculation** | Annualized return based on irregular cash flows using Newton-Raphson + Bisection |
+| 💰 **Result Summary** | Total invested, total redeemed, profit/loss at a glance |
+| 🛡️ **Admin Panel** | Full user management — create, activate, deactivate, delete, set expiry, reset password |
+| 🔐 **Role-based Access** | Admins manage users; regular users access the calculator |
+| ⏱️ **Login Expiry** | Configurable per-user expiry (default: 1 hour for new accounts) |
+| 🔑 **Change Password** | All logged-in users can change their own password |
+| 📧 **Forgot Password** | 6-digit verification code via email for all active users |
+| 🔄 **Request Reactivation** | Expired/deactivated users can request reactivation from login page |
+| 📝 **Auto Account Creation** | Access request form auto-creates user with random password + welcome email |
+| 📬 **Email Notifications** | Beautiful HTML emails via Brevo API — welcome, activation, password reset, access requests |
+| 🚦 **Rate Limiting** | In-memory per-IP rate limiting on login, upload, and access request endpoints |
+| 🗄️ **PostgreSQL Backend** | User data stored in PostgreSQL (Neon DB) |
+| 🔒 **BCrypt Passwords** | All passwords stored as hashes, never plain text |
+| 📥 **Sample Excel Download** | One-click sample workbook download from the dashboard |
+| 📜 **Disclaimer & Privacy** | Public legal pages accessible without login |
+| 🧹 **No Data Persistence** | Uploaded files processed in memory and immediately discarded |
+
+---
+
+## 📋 Workbook Format
 
 Use the first sheet with these column headers:
 
 | Date | Type | Amount |
-| --- | --- | --- |
+|------|------|--------|
 | 2024-01-10 | BUY | 10000 |
 | 2024-04-05 | BUY | 7500 |
 | 2024-09-20 | SELL | 5000 |
 | 2025-01-15 | PRESENT | 22000 |
 
 **Rules:**
-- First entry must be **BUY**
-- Last entry must be **PRESENT** (current portfolio value)
-- At least one BUY and one PRESENT required
-- SELL entries are optional (partial redemptions)
-- Dates must be in ascending order
+- ✅ First entry must be **BUY**
+- ✅ Last entry must be **PRESENT** (current portfolio value)
+- ✅ At least one BUY and one PRESENT required
+- ✅ SELL entries are optional (partial redemptions)
+- ✅ Dates must be in ascending order
 
-**Supported date formats:** `yyyy-MM-dd`, `dd/MM/yyyy`, `MM/dd/yyyy`, `dd-MMM-yyyy`
+**Supported date formats:**
+`yyyy-MM-dd` · `dd/MM/yyyy` · `MM/dd/yyyy` · `dd-MMM-yyyy`
 
-## Prerequisites
+---
 
-- Java 21
-- Maven
-- PostgreSQL database (local or Neon)
+## 🛠️ Tech Stack
 
-## Environment Variables
+| Layer | Technology |
+|-------|-----------|
+| **Backend** | Spring Boot 3.5 (Java 21) |
+| **Security** | Spring Security — form login, role-based access, BCrypt |
+| **Database** | Spring Data JPA + PostgreSQL (Neon DB) |
+| **Excel Parsing** | Apache POI |
+| **Templates** | Thymeleaf (server-side rendering) |
+| **Email** | Brevo API (transactional HTML emails) |
+| **Environment** | spring-dotenv (auto-loads `.env`) |
+| **Deployment** | Render (Web Service) |
+| **Database Hosting** | Neon (Serverless PostgreSQL) |
+
+---
+
+## ⚙️ Environment Variables
 
 Create a `.env` file in the project root (see `.env.example`):
 
-```
-DB_URL=jdbc:postgresql://localhost:5432/xirr
-DB_USERNAME=xirr
-DB_PASSWORD=xirr
+```env
+DB_URL=jdbc:postgresql://ep-xxxxx.aws.neon.tech/xirr?sslmode=require
+DB_USERNAME=neondb_owner
+DB_PASSWORD=your-neon-password
 BREVO_API_KEY=your-brevo-api-key
 BREVO_FROM_EMAIL=your-email@example.com
 ACCESS_REQUEST_NOTIFY_EMAIL=your-email@example.com
+SITE_URL=https://your-app.onrender.com
 ```
 
-## Local Run
+---
 
-```powershell
+## 🚀 Local Development
+
+### Prerequisites
+- Java 21
+- Maven
+- PostgreSQL (local or Neon)
+
+### Run
+
+```bash
 mvn spring-boot:run
 ```
 
 Open `http://localhost:8080`
 
 **Default admin login (created on first startup):**
-- Email: `admin@kartikgupta.in`
-- Password: `ChangeThisNow!2026`
+- 📧 Email: `admin@kartikgupta.in`
+- 🔑 Password: `ChangeThisNow!2026`
 
-## Package
+### Package
 
-```powershell
+```bash
 mvn clean package -DskipTests
 java -jar target/xirr-calculator-0.0.1-SNAPSHOT.jar
 ```
 
-## Docker
+---
 
-```powershell
-docker build -t xirr-calculator .
-docker run --env-file .env -p 8080:8080 xirr-calculator
-```
+## ☁️ Deployment (Render + Neon)
 
-## Admin Panel
+### Database — Neon
+
+1. Create a project at [neon.tech](https://neon.tech)
+2. Create a database (e.g. `xirr`)
+3. Copy the JDBC connection string for your `.env`
+4. Tables are auto-created on first startup (`ddl-auto: update`)
+
+### Web Service — Render
+
+1. Push your code to GitHub
+2. Go to [render.com](https://render.com) → **New Web Service**
+3. Connect your repository
+4. Configure:
+   - **Runtime:** Docker (or Native with Java 21)
+   - **Build Command:** `mvn clean package -DskipTests`
+   - **Start Command:** `java -jar target/xirr-calculator-0.0.1-SNAPSHOT.jar`
+5. Add all environment variables from `.env` in the Render dashboard
+6. Deploy
+
+---
+
+## 👑 Admin Panel
 
 Accessible at `/admin` for users with admin role.
 
-- Create users (email as login ID, password, optional admin rights)
-- Activate / Deactivate users
-- Set login expiry (date & time picker)
-- Reset user passwords
-- Delete users
-- Change your own password
+| Action | Description |
+|--------|-------------|
+| ➕ Create User | Email as login ID, auto-generate or set password, optional admin rights |
+| ✅ Activate | Re-enable a deactivated user |
+| ⏸️ Deactivate | Disable user login |
+| ⏱️ Set Expiry | Date & time picker for login expiry |
+| 🔑 Reset Password | Generate or set new password (emails user automatically) |
+| 🗑️ Delete | Permanently remove a user |
+| 🔒 Change Password | Admin can change their own password |
 
-New users get 1 hour of access by default. Admin can extend via the expiry setting.
+New users get **1 hour** of access by default. Admin can extend via the expiry setting.
 
-## Access Request Form
+---
 
-Unauthenticated users can submit a request from the login page:
-- Full name, email, and purpose are required
-- Admin receives an email notification
-- Requests are also stored in `data/access-requests.jsonl`
+## 🔐 Password Reset Flow
 
-## Password Reset Flow
+| User Type | Flow |
+|-----------|------|
+| **All active users** | Forgot Password → enters email → receives 6-digit code → verifies → sets new password |
+| **Inactive users** | Request Reactivation → admin receives notification → admin activates from panel |
 
-**Admin:** Forgot Password → enters email → receives 6-digit code via email → verifies code → sets new password.
+> New password cannot be the same as the current password.
 
-**Regular user:** Forgot Password → clicks "Request Admin to Reset" → admin receives email notification → admin resets from the panel.
+---
 
-**All users:** New password cannot be the same as the current password.
+## 🚦 Rate Limiting
 
-## Rate Limiting
-
-- `POST /login`: 6 requests per 60 seconds per IP
-- `POST /access-request`: 4 requests per 600 seconds per IP
-- `POST /api/xirr/calculate`: 20 requests per 60 seconds per IP
+| Endpoint | Limit |
+|----------|-------|
+| `POST /login` | 6 requests / 60 seconds / IP |
+| `POST /access-request` | 4 requests / 600 seconds / IP |
+| `POST /api/xirr/calculate` | 20 requests / 60 seconds / IP |
 
 Configure in `application.yml` under `app.rate-limit`.
 
-## Deployment (AWS EC2 Spot)
+---
 
-1. Launch a `t2.micro` spot instance (Amazon Linux 2023, Mumbai region)
-2. Install Java 21: `sudo yum install java-21-amazon-corretto -y`
-3. Upload the jar and create `.env` on the server
-4. Create a systemd service for auto-start
-5. Attach an Elastic IP for a fixed address
-6. Open port 8080 in the security group
+## 📬 Email Notifications
 
-Estimated cost: ~₹100–150/month
+All emails use beautiful HTML templates with:
+- Clean card layout with branding
+- "Log In Now" action buttons
+- Credential cards with expiry info
+- Sent via **Brevo API**
 
-## Tech Stack
+Triggers:
+- 🆕 User created → welcome email to user + admin notification
+- ✅ User activated → notification to user + admin
+- 🔑 Password reset → new credentials to user + admin
+- 📧 Verification code → code to user + copy to admin
+- 📝 Access request → admin notification
+- 🔄 Reactivation request → admin notification
 
-- Spring Boot 3.5
-- Spring Security (form login, role-based)
-- Spring Data JPA + PostgreSQL
-- Apache POI (Excel parsing)
-- Thymeleaf (server-side templates)
-- Brevo API (transactional email)
-- spring-dotenv (auto-loads `.env`)
+---
+
+## 📄 Public Pages
+
+| Page | URL |
+|------|-----|
+| Disclaimer | `/disclaimer` |
+| Privacy Policy | `/privacy` |
+
+Accessible without login.
+
+---
+
+## 📁 Project Structure
+
+```
+src/main/java/com/xirr/calculator/
+├── config/          # Security, rate limiting, data initializer
+├── controller/      # REST + MVC controllers
+├── exception/       # Custom exceptions
+├── model/           # JPA entities, DTOs, enums
+├── repository/      # Spring Data JPA repositories
+├── service/         # Business logic, email, Excel parsing
+└── tools/           # BCrypt generator utility
+```
+
+---
+
+## 📜 License
+
+Private project by **Kartik Gupta** — [kartikgupta.in](https://kartikgupta.in)

@@ -37,8 +37,8 @@
             </form>
 
             <div style="margin-top:1.25rem;">
-                <button type="button" class="secondary-button" style="width:100%;" onclick="document.getElementById('forgot-section').classList.toggle('hidden')">Forgot Password?</button>
-                <button type="button" class="secondary-button" style="width:100%;margin-top:0.4rem;" onclick="document.getElementById('reactivate-section').classList.toggle('hidden')">Request Reactivation</button>
+                <button type="button" class="secondary-button" style="width:100%;" onclick="toggleSection('forgot-section')">Forgot Password?</button>
+                <button type="button" class="secondary-button" style="width:100%;margin-top:0.4rem;" onclick="toggleSection('reactivate-section')">Request Reactivation</button>
             </div>
 
             <div id="forgot-section" class="hidden" style="margin-top:1rem;">
@@ -46,8 +46,7 @@
                     <label for="resetEmail">Your Email</label>
                     <input id="resetEmail" type="email" required style="margin-bottom:0.5rem;">
                     <button type="button" class="secondary-button" style="width:100%;" onclick="requestResetCode()">Send Verification Code</button>
-                    <p style="font-size:0.78rem;color:var(--text-soft);margin-top:0.3rem;">* Verification code is only for admin accounts.</p>
-                    <button type="button" class="secondary-button" style="width:100%;margin-top:0.4rem;" onclick="requestPasswordReset()">Request Admin to Reset</button>
+                    <p style="font-size:0.78rem;color:var(--text-soft);margin-top:0.3rem;">* Available for all active accounts. Inactive users can request reactivation below.</p>
                 </div>
                 <div id="forgot-step2" class="hidden" style="margin-top:0.75rem;">
                     <label for="resetCode">Verification Code</label>
@@ -75,7 +74,7 @@
             <p class="muted">Submit your details below to request a new login ID. Requests are validated and recorded without using a database.</p>
 
             <div class="status-banner success" th:if="${param.requestSuccess}">
-                Your access request has been submitted successfully.
+                Your account has been created! Check your email for login credentials.
             </div>
             <div class="status-banner error" th:if="${requestFailureMessage}" th:text="${requestFailureMessage}">
                 Please fix the highlighted fields and submit again.
@@ -116,6 +115,17 @@
         const h = {"Content-Type": "application/json"};
         if (csrfHeader && csrfToken) h[csrfHeader] = csrfToken;
         return h;
+    }
+
+    function toggleSection(id) {
+        const sections = ['forgot-section', 'reactivate-section'];
+        sections.forEach(s => {
+            if (s === id) {
+                document.getElementById(s).classList.toggle('hidden');
+            } else {
+                document.getElementById(s).classList.add('hidden');
+            }
+        });
     }
 
     function setForgotMsg(text, ok) {
