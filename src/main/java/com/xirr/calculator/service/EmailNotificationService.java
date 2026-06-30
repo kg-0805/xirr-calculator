@@ -173,6 +173,58 @@ public class EmailNotificationService {
     }
 
     @Async
+    public void sendXirrResultNotification(String fullName, String email,
+                                           String formattedXirr,
+                                           int transactionCount,
+                                           java.math.BigDecimal totalInvested,
+                                           java.math.BigDecimal totalRedeemed,
+                                           java.math.BigDecimal profitOrLoss) {
+        try {
+            boolean isPositive = profitOrLoss.signum() >= 0;
+            String xirrColor = isPositive ? "#16a34a" : "#dc2626";
+            String profitColor = isPositive ? "#16a34a" : "#dc2626";
+            String profitLabel = isPositive ? "Profit" : "Loss";
+
+            String xirrHighlight = "<div style='text-align:center;margin:24px 0;'>"
+                    + "<div style='display:inline-block;padding:20px 40px;background:linear-gradient(135deg,"
+                    + (isPositive ? "#f0fdf4,#dcfce7" : "#fef2f2,#fee2e2")
+                    + ");border-radius:16px;border:2px solid " + (isPositive ? "#bbf7d0" : "#fecaca") + ";'>"
+                    + "<p style='margin:0 0 4px;font-size:13px;color:#6b7280;font-weight:500;'>Your XIRR Return</p>"
+                    + "<p style='margin:0;font-size:36px;font-weight:800;color:" + xirrColor + ";letter-spacing:-1px;'>" + formattedXirr + "</p>"
+                    + "</div></div>";
+
+            String summaryCard = "<div style='margin:20px 0;padding:20px 24px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;'>"
+                    + "<table style='width:100%;border-collapse:collapse;font-size:14px;'>"
+                    + "<tr><td style='padding:8px 0;color:#6b7280;'>Transactions Processed</td><td style='padding:8px 0;text-align:right;font-weight:600;color:#1f2937;'>" + transactionCount + "</td></tr>"
+                    + "<tr><td style='padding:8px 0;border-top:1px solid #e2e8f0;color:#6b7280;'>Total Invested</td><td style='padding:8px 0;border-top:1px solid #e2e8f0;text-align:right;font-weight:600;color:#1f2937;'>" + formatCurrency(totalInvested) + "</td></tr>"
+                    + "<tr><td style='padding:8px 0;border-top:1px solid #e2e8f0;color:#6b7280;'>Total Redeemed</td><td style='padding:8px 0;border-top:1px solid #e2e8f0;text-align:right;font-weight:600;color:#1f2937;'>" + formatCurrency(totalRedeemed) + "</td></tr>"
+                    + "<tr><td style='padding:8px 0;border-top:1px solid #e2e8f0;color:#6b7280;'>" + profitLabel + "</td><td style='padding:8px 0;border-top:1px solid #e2e8f0;text-align:right;font-weight:700;color:" + profitColor + ";'>" + (isPositive ? "+" : "") + formatCurrency(profitOrLoss) + "</td></tr>"
+                    + "</table></div>";
+
+            String timestamp = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"))
+                    .format(DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a"));
+
+            String userHtml = wrap("Your XIRR Calculation Result",
+                    "<p>Hi <strong>" + fullName + "</strong>,</p>"
+                    + "<p>Your XIRR has been calculated successfully. Here's a summary of your investment performance:</p>"
+                    + xirrHighlight
+                    + summaryCard
+                    + "<p style='font-size:12px;color:#9ca3af;margin-top:16px;'>Calculated on " + timestamp + " IST</p>"
+                    + button("View Details", siteUrl)
+                    + "<p style='color:#6b7280;font-size:13px;margin-top:1.5rem;'>This is an automated notification from XIRR Calculator. The XIRR value represents the annualized return on your investments.</p>");
+
+            sendEmail(email, "Your XIRR: " + formattedXirr + " \u2014 Calculation Complete", userHtml);
+        } catch (Exception e) {
+            log.error("Failed to send XIRR result notification email to {}", email, e);
+        }
+    }
+
+    private String formatCurrency(java.math.BigDecimal amount) {
+        java.text.NumberFormat formatter = java.text.NumberFormat.getCurrencyInstance(new java.util.Locale("en", "IN"));
+        return formatter.format(amount);
+    }
+
+    @Async
     public void sendReactivationRequest(String fullName, String email, String reason) {
         try {
             String html = wrap("Reactivation Request",

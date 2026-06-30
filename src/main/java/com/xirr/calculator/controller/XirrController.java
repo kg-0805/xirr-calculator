@@ -1,11 +1,15 @@
 package com.xirr.calculator.controller;
 
+import com.xirr.calculator.model.AppUser;
 import com.xirr.calculator.model.InvestmentTransaction;
 import com.xirr.calculator.model.TransactionRowView;
 import com.xirr.calculator.model.XirrResponse;
+import com.xirr.calculator.repository.UserRepository;
+import com.xirr.calculator.service.EmailNotificationService;
 import com.xirr.calculator.service.ExcelTransactionParser;
 import com.xirr.calculator.service.XirrService;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -22,14 +26,21 @@ public class XirrController {
 
     private final ExcelTransactionParser excelTransactionParser;
     private final XirrService xirrService;
+    private final EmailNotificationService emailNotificationService;
+    private final UserRepository userRepository;
 
-    public XirrController(ExcelTransactionParser excelTransactionParser, XirrService xirrService) {
+    public XirrController(ExcelTransactionParser excelTransactionParser,
+                          XirrService xirrService,
+                          EmailNotificationService emailNotificationService,
+                          UserRepository userRepository) {
         this.excelTransactionParser = excelTransactionParser;
         this.xirrService = xirrService;
+        this.emailNotificationService = emailNotificationService;
+        this.userRepository = userRepository;
     }
 
     @PostMapping(path = "/calculate", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public XirrResponse calculate(@RequestPart("file") MultipartFile file) {
+    public XirrResponse calculate(@RequestPart("file") MultipartFile file, Authentication authentication) {
         List<InvestmentTransaction> transactions = excelTransactionParser.parse(file);
         BigDecimal xirr = xirrService.calculate(transactions)
                 .multiply(BigDecimal.valueOf(100))
@@ -46,6 +57,10 @@ public class XirrController {
                 .map(InvestmentTransaction::amount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+        BigDecimal profitOrLoss = totalRedeemed.subtract(totalInvested);
+
+        String formattedXirr = xirr.stripTrailingZeros().toPlainString() + "%";
+
         List<TransactionRowView> rowViews = transactions.stream()
                 .map(transaction -> new TransactionRowView(
                         transaction.date(),
@@ -54,13 +69,27 @@ public class XirrController {
                         transaction.signedCashFlow()))
                 .toList();
 
+        // Send email notification to the authenticated user
+        if (authentication != null && authentication.getName() != null) {
+            String userEmail = authentication.getName();
+            userRepository.findByEmail(userEmail).ifPresent(user ->
+                    emailNotificationService.sendXirrResultNotification(
+                            user.getFullName(),
+                            user.getEmail(),
+                            formattedXirr,
+                            rowViews.size(),
+                            totalInvested,
+                            totalRedeemed,
+                            profitOrLoss));
+        }
+
         return new XirrResponse(
                 xirr,
-                xirr.stripTrailingZeros().toPlainString() + "%",
+                formattedXirr,
                 rowViews.size(),
                 totalInvested,
                 totalRedeemed,
-                totalRedeemed.subtract(totalInvested),
+                profitOrLoss,
                 rowViews);
     }
 }
